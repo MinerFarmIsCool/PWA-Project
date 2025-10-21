@@ -4,3 +4,5 @@ lib
 lib64
 pyvenv.cfg
 include
+
+pwa_project/pwa_project/__pycache__/
