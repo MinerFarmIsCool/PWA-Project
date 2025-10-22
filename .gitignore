@@ -8,3 +8,5 @@ include
 pwa_project/pwa_project/__pycache__/
 pwa_project/tasks/__pycache__/
 pwa_project/tasks/migrations/__pycache__/
+pwa_project/users/__pycache__/
+pwa_project/users/migrations/__pycache__/
