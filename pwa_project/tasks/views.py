@@ -16,14 +16,6 @@ class NewTaskForm(forms.Form):
             'placeholder': 'New Task'  
         })
     )
-    description = forms.CharField(
-        label='',  
-        widget=forms.TextInput(attrs={
-            'id': 'description', 
-            'placeholder': 'Task Description',
-            'style': 'width:250px;' 
-        })
-    )
 
 # Index View - Home page showing task list
 def index(request):
@@ -39,8 +31,7 @@ def add(request):
         form = NewTaskForm(request.POST)
         if form.is_valid():
             task_name = form.cleaned_data["task"]
-            task_description = form.cleaned_data["description"]
-            Task.objects.create(name=task_name, description=task_description)  # Create a new Task object and save it in the database
+            Task.objects.create(name=task_name)  # Create a new Task object and save it in the database
             return HttpResponseRedirect(reverse("tasks:index"))
         else:
             return render(request, "tasks/add.html", {
@@ -52,13 +43,13 @@ def add(request):
 
 # API View to Get a List of Tasks
 def get_tasks(request):
-    tasks = Task.objects.all().values("id", "name", "completed", "description")  # Get all tasks from the database
+    tasks = Task.objects.all().values("id", "name", "completed")  # Get all tasks from the database
     return JsonResponse(list(tasks), safe=False)  # Return tasks as JSON
 
 # API View to Get a Specific Task
 def get_task(request, id):
     task = get_object_or_404(Task, id=id)  # Fetch a specific task by ID or return a 404 if not found
-    return JsonResponse({"id": task.id, "name": task.name, "completed": task.completed, "description": task.description})
+    return JsonResponse({"id": task.id, "name": task.name, "completed": task.completed})
 
 # API View to Create a New Task
 @csrf_exempt  # To allow POST requests without CSRF protection for the sake of API
@@ -66,10 +57,9 @@ def create_task(request):
     if request.method == "POST":
         data = json.loads(request.body)  # Parse incoming JSON data
         task_name = data.get("task")
-        description = data.get("description")
-        if task_name and description:
-            task = Task.objects.create(name=task_name, task_description=description)  # Create and save the new task in the database
-            return JsonResponse({"message": "Task added successfully", "task": {"id": task.id, "name": task.name, "description": task.description}}, status=201)
+        if task_name:
+            task = Task.objects.create(name=task_name)  # Create and save the new task in the database
+            return JsonResponse({"message": "Task added successfully", "task": {"id": task.id, "name": task.name}}, status=201)
         else:
             return JsonResponse({"error": "Task content not provided."}, status=400)
     return HttpResponseNotAllowed(["POST"])
@@ -82,13 +72,11 @@ def update_task(request, id):
         data = json.loads(request.body)
         task_name = data.get("name", task.name)  # Default to existing name if not provided
         completed = data.get("completed", task.completed)  # Default to existing completed status if not provided
-        description = data.get("description", task.description)
         # Update task fields
         task.name = task_name
         task.completed = completed
-        task.description = description
         task.save()  # Save the updated task to the database
-        return JsonResponse({"message": "Task updated successfully", "task": {"id": task.id, "name": task.name, "completed": task.completed, "description": task.description}})
+        return JsonResponse({"message": "Task updated successfully", "task": {"id": task.id, "name": task.name, "completed": task.completed}})
     return HttpResponseNotAllowed(["PUT", "PATCH"])
 
 # API View to Delete a Task
